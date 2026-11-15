@@ -6,17 +6,28 @@ const PORT = Number(process.env.PORT) || 3000;
 
 // 5 December 2026, 14:00 Africa/Cairo (UTC+2 on that date).
 const LAUNCH_AT = Date.UTC(2026, 11, 5, 12, 0, 0);
+let countdownEnabled = true;
 const ROOT = __dirname;
 
 app.disable("x-powered-by");
 app.set("trust proxy", 1);
+
+app.use(express.json());
+
+app.post("/__timer-toggle", (req, res) => {
+  res.set("Cache-Control", "no-store");
+  if (req.body?.code !== "55555") return res.status(403).json({ ok: false });
+  countdownEnabled = !countdownEnabled;
+  res.json({ ok: true, enabled: countdownEnabled });
+});
 
 app.get("/__launch-status", (_req, res) => {
   res.set("Cache-Control", "no-store, no-cache, must-revalidate, private");
   res.json({
     serverNow: Date.now(),
     launchAt: LAUNCH_AT,
-    unlocked: Date.now() >= LAUNCH_AT
+    unlocked: !countdownEnabled || Date.now() >= LAUNCH_AT,
+    countdownEnabled
   });
 });
 
@@ -57,7 +68,7 @@ h1{font-size:clamp(28px,6vw,44px);margin:18px 0 12px}p{color:#c4cde0;line-height
 </main>
 <script>
 (async function(){
- const ids=["d","h","m","s"];let launchAt=Date.UTC(2026,11,5,12,0,0),offset=0;
+ let keyBuffer="";\n document.addEventListener("keydown",async function(e){if(e.key.length!==1||!/[0-9]/.test(e.key))return;keyBuffer=(keyBuffer+e.key).slice(-5);if(keyBuffer!=="55555")return;keyBuffer="";try{const r=await fetch("/__timer-toggle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:"55555"})});if(r.ok)location.reload();}catch(_){}});\n const ids=["d","h","m","s"];let launchAt=Date.UTC(2026,11,5,12,0,0),offset=0;
  try{const r=await fetch("/__launch-status",{cache:"no-store"});if(r.ok){const x=await r.json();offset=x.serverNow-Date.now();launchAt=x.launchAt;}}catch(e){}
  function tick(){
   const left=Math.max(0,launchAt-(Date.now()+offset));
@@ -74,7 +85,7 @@ h1{font-size:clamp(28px,6vw,44px);margin:18px 0 12px}p{color:#c4cde0;line-height
 
 app.use((req, res, next) => {
   if (req.path === "/__launch-status") return next();
-  if (Date.now() < LAUNCH_AT) {
+  if (countdownEnabled && Date.now() < LAUNCH_AT) {
     res.status(200).set({
       "Cache-Control": "no-store, no-cache, must-revalidate, private",
       "X-Robots-Tag": "noindex, nofollow"
