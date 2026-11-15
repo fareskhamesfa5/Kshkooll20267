@@ -81,7 +81,10 @@ app.use((req, res, next) => {
     }).type("html").send(lockedPage());
     return;
   }
-  next();
+  // Temporary destination while the repository is named Kshkooll20267.
+  // Before launch, change this to /Kshkooll/ after restoring the repository name.
+  res.set("Cache-Control", "no-store");
+  res.redirect(302, "https://fareskhamesfa5.github.io/Kshkooll20267/");
 });
 
 // Never expose deployment metadata or server-side source files.
