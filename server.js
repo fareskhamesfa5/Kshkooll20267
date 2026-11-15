@@ -68,7 +68,9 @@ h1{font-size:clamp(28px,6vw,44px);margin:18px 0 12px}p{color:#c4cde0;line-height
 </main>
 <script>
 (async function(){
- let keyBuffer="";\n document.addEventListener("keydown",async function(e){if(e.key.length!==1||!/[0-9]/.test(e.key))return;keyBuffer=(keyBuffer+e.key).slice(-5);if(keyBuffer!=="55555")return;keyBuffer="";try{const r=await fetch("/__timer-toggle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:"55555"})});if(r.ok)location.reload();}catch(_){}});\n const ids=["d","h","m","s"];let launchAt=Date.UTC(2026,11,5,12,0,0),offset=0;
+ let keyBuffer="";
+ document.addEventListener("keydown",async function(e){if(e.key.length!==1||!/[0-9]/.test(e.key))return;keyBuffer=(keyBuffer+e.key).slice(-5);if(keyBuffer!=="55555")return;keyBuffer="";try{const r=await fetch("/__timer-toggle",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({code:"55555"})});if(r.ok)location.reload();}catch(_){}});
+ const ids=["d","h","m","s"];let launchAt=Date.UTC(2026,11,5,12,0,0),offset=0;
  try{const r=await fetch("/__launch-status",{cache:"no-store"});if(r.ok){const x=await r.json();offset=x.serverNow-Date.now();launchAt=x.launchAt;}}catch(e){}
  function tick(){
   const left=Math.max(0,launchAt-(Date.now()+offset));
